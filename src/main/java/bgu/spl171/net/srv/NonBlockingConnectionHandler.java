@@ -20,8 +20,7 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
 
     private final BidiMessagingProtocol<T> protocol;
     private final MessageEncoderDecoder<T> encdec;
-    private final Queue<ByteBuffer> writeQueue = new LinkedList<>();
-    private final SocketChannel chan;
+    private final Queue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<>();    private final SocketChannel chan;
     private final Reactor reactor;
 
     public NonBlockingConnectionHandler(
@@ -41,8 +40,6 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
         boolean success = false;
         try {
             success = chan.read(buf) != -1;
-        } catch (ClosedByInterruptException ex) {
-            Thread.currentThread().interrupt();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -96,9 +93,9 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
                 close();
             }
         }
-
         if (writeQueue.isEmpty()) {
-            reactor.updateInterestedOps(chan, SelectionKey.OP_READ);
+            if (protocol.shouldTerminate()) close();
+            else reactor.updateInterestedOps(chan, SelectionKey.OP_READ);
         }
     }
 
@@ -119,10 +116,7 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
 
     @Override
     public void send(T msg) {
-        //add new msg to the write Queue
         writeQueue.add(ByteBuffer.wrap(encdec.encode(msg)));
-        //
         reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE );
-
     }
 }

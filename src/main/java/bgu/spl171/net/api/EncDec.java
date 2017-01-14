@@ -21,8 +21,6 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
     private boolean finishFirstTwoBytes = false;
 
     private ByteBuffer buffer = ByteBuffer.allocate(518);
-    private byte[] objectBytes = null;
-    private int objectBytesIndex = 0;
     private boolean firstTime = true;
 
     //for data packet
@@ -153,26 +151,26 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                     }
                     break;
 
-                case "BCAST":
-                    if(firstTime) {
-                        buffer = ByteBuffer.allocate(518);
-                        firstTime = false;
-                    }
-
-                    if(nextByte != '\0') {
-                        buffer.put(nextByte);
-                    } else {
-                        try {
-                            buffer.flip();
-                            byte delAdd = buffer.get(0);
-                            str = new String(buffer.array(), "UTF-8");
-                            resetBuffer();
-                            return new BCASTpacket(delAdd, str);
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    break;
+//                case "BCAST":
+//                    if(firstTime) {
+//                        buffer = ByteBuffer.allocate(518);
+//                        firstTime = false;
+//                    }
+//
+//                    if(nextByte != '\0') {
+//                        buffer.put(nextByte);
+//                    } else {
+//                        try {
+//                            buffer.flip();
+//                            byte delAdd = buffer.get(0);
+//                            str = new String(buffer.array(), "UTF-8");
+//                            resetBuffer();
+//                            return new BCASTpacket(delAdd, str);
+//                        } catch (UnsupportedEncodingException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                    break;
 
                 case "ERROR":
                     if(firstTime) {
