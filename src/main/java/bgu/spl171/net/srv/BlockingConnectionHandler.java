@@ -33,7 +33,7 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
             in = new BufferedInputStream(sock.getInputStream());
             out = new BufferedOutputStream(sock.getOutputStream()); // maybe needs to delete
 
-            while (connected && (read = in.read()) >= 0) {
+            while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
                     protocol.process(nextMessage);
