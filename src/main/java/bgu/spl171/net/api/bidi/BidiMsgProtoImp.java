@@ -28,6 +28,8 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     private ArrayList<DATApacket> fileNamePackets;
     private boolean sendingFileNames;
     private short tempBlkNum;
+    private short lastBlk;
+    private boolean shouldTerminate;
 
     public void start(int connectionId, Connections connections) {
             this.connectionId = connectionId;
@@ -38,6 +40,8 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             this.fileNamePackets = new ArrayList<>();
             recievingData = false;
             sendingFileNames = false;
+            this.shouldTerminate = false;
+            this.lastBlk = 0;
             namesOfFiles = new ConcurrentLinkedDeque<>();
     }
 
@@ -64,7 +68,6 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     connections.send(this.connectionId, new ACKpacket((short) 0));
                     namesOfFiles.remove(((DELRQpacket) message).getFileName());
                     this.connections.broadcast(new BCASTpacket((byte)0, "BCAST del " +((DELRQpacket) message).getFileName()));
-
                 } else {
                     connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
                 }
@@ -89,8 +92,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     connections.send(this.connectionId, new ERRORpacket((short) 5, "File already in server"));
                 }
                 break;
+
             case "ACK":
-                if (packetsLeft > 0 && ((ACKpacket) message).getBlockNumber() == temp.get(0).getBlockNumber()) {
+                if (packetsLeft > 0 && ((ACKpacket) message).getBlockNumber() == temp.get(0).getBlockNumber()-1) {
                     connections.send(this.connectionId, temp.remove(0));
                     packetsLeft = packetsLeft - 1;
                 }
@@ -99,15 +103,20 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                         tempBlkNum++; // or fileNamePackets.get(0).getBlockNumber()
                         connections.send(this.connectionId, fileNamePackets.remove(0));
                     }
-                    if(fileNamePackets.size() > 0)
+                    if(fileNamePackets.size() > 0) {
                         sendingFileNames = false;
+                        tempBlkNum = 0;
+                    }
                 }
                 break;
             case "DATA":
                 if (recievingData) {
                     orgenizeData.put((int) ((DATApacket) message).getBlockNumber(), ((DATApacket) message).getData());
                     connections.send(this.connectionId, new ACKpacket((short) ((DATApacket) message).getBlockNumber()));
-                    if (((DATApacket) message).getData().length < 512) {
+                    if (((DATApacket) message).getData().length < 512 ) {//check if we have enough packets
+                        lastBlk = ((DATApacket) message).getBlockNumber();
+                    }
+                    if(lastBlk == orgenizeData.size()) {
                         recievingData = false;
                         FileOutputStream out = null;
                         try {
@@ -122,7 +131,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                             }
                             out.close();
                             namesOfFiles.add(tempFileName);
+                            tempFileName = "";
                             this.connections.broadcast(new BCASTpacket((byte)1, "BCAST add " +tempFileName));
+                            lastBlk = 0;
+                            orgenizeData = null;
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -131,6 +143,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                 break;
             case "DISC":
                     userNameMap.remove( this.connectionId);
+                    this.shouldTerminate = true;
                     connections.disconnect(this.connectionId);
                     connections.send(this.connectionId, new ACKpacket((short) 0));
             break;
@@ -221,6 +234,6 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
     @Override
     public boolean shouldTerminate() {
-        return false;
+        return this.shouldTerminate;
     }
 }
