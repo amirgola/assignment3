@@ -19,9 +19,10 @@ public class RemoteCommandInvocationProtocol<T> implements BidiMessagingProtocol
     }
 
     @Override
-    public Serializable process(Serializable msg) {
-        return ((Command) msg).execute(arg);
+    public void process(Serializable message) {
+
     }
+
 
     @Override
     public boolean shouldTerminate() {
