@@ -20,7 +20,8 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
 
     private final BidiMessagingProtocol<T> protocol;
     private final MessageEncoderDecoder<T> encdec;
-    private final Queue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<>();    private final SocketChannel chan;
+    private final Queue<ByteBuffer> writeQueue = new ConcurrentLinkedQueue<>();
+    private final SocketChannel chan;
     private final Reactor reactor;
 
     public NonBlockingConnectionHandler(
@@ -51,6 +52,8 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
+                            System.out.println("hello");
+
                             protocol.process(nextMessage);
                         }
                     }

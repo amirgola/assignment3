@@ -22,10 +22,12 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
         this.sock = sock;
         this.encdec = reader;
         this.protocol = protocol;
+        System.out.println("blocking constructor");
     }
 
     @Override
     public void run() {
+        System.out.println("runnnn fast run");
 
         try (Socket sock = this.sock) { //just for automatic closing
             int read;
@@ -34,6 +36,7 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
             out = new BufferedOutputStream(sock.getOutputStream()); // maybe needs to delete
 
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
+                System.out.println("blocking connectionnnnn");
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
                     protocol.process(nextMessage);

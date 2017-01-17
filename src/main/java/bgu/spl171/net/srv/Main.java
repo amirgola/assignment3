@@ -18,16 +18,16 @@ public class Main  {
 
 
     public static void main(String[] args) throws IOException {
-        String host = "local host";
+
         int port = 666; // get the main from args
         // int port = Integer.parseInt(args[0]);
         BidiMessagingProtocol bid = new BidiMsgProtoImp();
 
         Server.reactor(
-                Runtime.getRuntime().availableProcessors(),
+                2,
                 port, //port
-                () ->  new RemoteCommandInvocationProtocol<>(bid), //protocol factory
-                ObjectEncoderDecoder::new //message encoder decoder factory
+                ()-> new BidiMsgProtoImp(), //protocol factory
+                () ->new EncDec() //message encoder decoder factory
         ).serve();
 
 

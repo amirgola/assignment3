@@ -50,6 +50,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     @Override
     public void process(Packets message) {
         String msgType = message.getMsgType();
+        System.out.println(msgType);
 
         if(msgType.equalsIgnoreCase("LOGRQ")) {
             if ( !loggedIn(((LOGRQpacket) message).getUserName()) ) {
