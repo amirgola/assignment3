@@ -156,7 +156,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     break;
             }
         } else {
-        connections.send(this.connectionId, new ERRORpacket((short) 7, "User already exists"));
+        connections.send(this.connectionId, new ERRORpacket((short) 6, "User not logged in"));
         }
     }
 
