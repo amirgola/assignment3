@@ -52,10 +52,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             folder = new File(workingDirectory);
 
         files = folder.listFiles();
-            System.out.println(workingDirectory);
-        for (File t: files) {
-            namesOfFiles.add(t.getName());
-        }
+
+//        for (File t: files) {
+//            namesOfFiles.add(t.getName());
+//        }
     }
 
     @Override
@@ -247,6 +247,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     }
 
     private boolean findFile(String fileName) {
+
+        if(!folder.canRead()) {
+            System.out.println("Cannot read");
+        }
 
         files = folder.listFiles();
         if (files != null)
