@@ -32,10 +32,21 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
     @Override
     //maybe need to switch to byte buffer instead of array
     public Packets decodeNextByte(byte nextByte) {
-        System.out.println("inside encoder decoder");
-        if(!finishFirstTwoBytes)
+        if(!finishFirstTwoBytes) {
             findOpCode(nextByte);
-        else {
+            if ( msgType != null) {
+                switch (msgType) {
+                    case "DISC":
+                        resetBuffer();
+                        return new DISCpacket();
+                    case "DIRQ":
+                        resetBuffer();
+                        return new DIRQpacket();
+                    default:
+                        break;
+                }
+            }
+        } else {
             switch( msgType ) {
                 case "LOGRQ":
                     if( firstTime ) {
@@ -108,9 +119,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                     }
                     break;
 
-                case "DIRQ":
-                    resetBuffer();
-                    return new DIRQpacket();
+
 
                 case "DATA":
 
@@ -182,7 +191,9 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                     return new ERRORpacket((short) 4, "unknown OP code");
             }
         }
-        return null;
+
+
+            return null;
     }
 
     @Override
@@ -255,8 +266,8 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 res[1] = opCodeArray[1];
                 res[2] = errCodeArray[0];
                 res[3] = errCodeArray[1];
-                for (int i = 4; i < res.length; i++) {
-                    res[i] = temp[i-4];
+                for (int i = 0; i < temp.length; i++) {
+                    res[i+4] = temp[i];
                 }
                 res[res.length-1] = 0;
                 return res;
@@ -281,7 +292,6 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
             if(opCodeLen == 2) {
                 finishFirstTwoBytes = true;
                 msgType = whichMsg(bytesToShort(opCodeBytes));
-
             }
     }
 
