@@ -14,13 +14,14 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     private int userId = 0; //maybe needs to be atomic
     private int waitingId = 0;
-    public void ConnectionsImpl () {
+    public ConnectionsImpl () {
         activeUsers = new ConcurrentHashMap<>();
     }
 
-    public void addNewUser(ConnectionHandler<T> connection) {
+    public int addNewUser(ConnectionHandler<T> connection) {
         //every time we add a user he gets the next id
         activeUsers.put(Integer.valueOf(increaseId()), connection);
+        return userId -1;
     }
 
 

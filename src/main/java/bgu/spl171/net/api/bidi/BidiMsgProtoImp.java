@@ -61,8 +61,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             } else {
                 connections.send(this.connectionId, new ERRORpacket((short) 7, "User already exists"));
             }
-        }
-    if(loggedIn) {
+        }else if(loggedIn) {
         switch (msgType) {
                 case "DELRQ":
                     if (findFile(((DELRQpacket) message).getFileName())) {

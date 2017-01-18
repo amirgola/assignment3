@@ -57,10 +57,11 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
 
     @Override
     public void send(T msg) {
-        try(Socket sock = this.sock) {
-            out = new BufferedOutputStream(sock.getOutputStream());
+        try {
+            //out = new BufferedOutputStream(this.sock.getOutputStream());
             out.write(encdec.encode(msg));
             out.flush();
+
         } catch (IOException e) {
             e.printStackTrace();
         }

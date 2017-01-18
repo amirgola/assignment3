@@ -21,7 +21,6 @@ public class Main  {
 
         int port = 6666; // get the main from args
         // int port = Integer.parseInt(args[0]);
-        BidiMessagingProtocol bid = new BidiMsgProtoImp();
 
 //        Server.reactor(
 //                2,
