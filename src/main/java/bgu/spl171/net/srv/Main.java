@@ -19,18 +19,22 @@ public class Main  {
 
     public static void main(String[] args) throws IOException {
 
-        int port = 666; // get the main from args
+        int port = 6666; // get the main from args
         // int port = Integer.parseInt(args[0]);
         BidiMessagingProtocol bid = new BidiMsgProtoImp();
 
-        Server.reactor(
-                2,
+//        Server.reactor(
+//                2,
+//                port, //port
+//                ()-> new BidiMsgProtoImp(), //protocol factory
+//                () ->new EncDec() //message encoder decoder factory
+//        ).serve();
+//
+        Server.threadPerClient(
                 port, //port
                 ()-> new BidiMsgProtoImp(), //protocol factory
                 () ->new EncDec() //message encoder decoder factory
         ).serve();
-
-
     }
 
 

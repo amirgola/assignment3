@@ -53,6 +53,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                             e.printStackTrace();
                         }
                     }
+                    break;
                 case "DELRQ":
                     if( firstTime ) {
                         buffer = ByteBuffer.allocate(512);
@@ -69,7 +70,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                             e.printStackTrace();
                         }
                     }
-
+                    break;
                 case "RRQ":
                     if( firstTime ) {
                         buffer = ByteBuffer.allocate(512);
@@ -150,28 +151,6 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         return new ACKpacket(bytesToShort(bytes));
                     }
                     break;
-
-//                case "BCAST":
-//                    if(firstTime) {
-//                        buffer = ByteBuffer.allocate(518);
-//                        firstTime = false;
-//                    }
-//
-//                    if(nextByte != '\0') {
-//                        buffer.put(nextByte);
-//                    } else {
-//                        try {
-//                            buffer.flip();
-//                            byte delAdd = buffer.get(0);
-//                            str = new String(buffer.array(), "UTF-8");
-//                            resetBuffer();
-//                            return new BCASTpacket(delAdd, str);
-//                        } catch (UnsupportedEncodingException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                    break;
-
                 case "ERROR":
                     if(firstTime) {
                         buffer = ByteBuffer.allocate(518);
@@ -197,11 +176,9 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 case "DISC":
                     resetBuffer();
                     return new DISCpacket();
-
                 case "UNKNOWN":
                     resetBuffer();
                     return new ERRORpacket((short) 4, "unknown OP code");
-
             }
         }
         return null;

@@ -62,7 +62,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                 connections.send(this.connectionId, new ERRORpacket((short) 7, "User already exists"));
             }
         }
-    if(!loggedIn) {
+    if(loggedIn) {
         switch (msgType) {
                 case "DELRQ":
                     if (findFile(((DELRQpacket) message).getFileName())) {
@@ -157,7 +157,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     break;
             }
         } else {
-        connections.send(this.connectionId, new ERRORpacket((short) 6, "User not logged in"));
+            connections.send(this.connectionId, new ERRORpacket((short) 6, "User not logged in"));
         }
     }
 
@@ -234,6 +234,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
 
     private boolean loggedIn(String userName) {
+        if (userName == null)
+            return false;
+        if (userNameMap == null)
+            userNameMap = new ConcurrentHashMap<>();
         return userNameMap.containsValue(userName);
     }
 
