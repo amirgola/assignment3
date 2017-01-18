@@ -19,7 +19,7 @@ public class Main  {
 
     public static void main(String[] args) throws IOException {
 
-        int port = 6666; // get the main from args
+        int port = 2000; // get the main from args
         // int port = Integer.parseInt(args[0]);
 
 //        Server.reactor(

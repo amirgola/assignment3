@@ -55,6 +55,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
         if(msgType.equalsIgnoreCase("LOGRQ")) {
             if ( !loggedIn(((LOGRQpacket) message).getUserName()) ) {
                 //do we need a waiting list for everyone that sent a request?
+                System.out.println(((LOGRQpacket) message).getUserName());
                 userNameMap.put(this.connectionId, ((LOGRQpacket) message).getUserName());
                 loggedIn = true;
                 connections.send(this.connectionId, new ACKpacket((short) 0));

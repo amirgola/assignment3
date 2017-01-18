@@ -32,6 +32,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
     @Override
     //maybe need to switch to byte buffer instead of array
     public Packets decodeNextByte(byte nextByte) {
+        System.out.println("inside encoder decoder");
         if(!finishFirstTwoBytes)
             findOpCode(nextByte);
         else {
@@ -218,6 +219,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 for (int i = 3; i < res.length; i++) {
                     res[i] = temp[i-3];
                 }
+                res[res.length-1] = 0;
                 return res;
 
             case "DATA":
@@ -256,6 +258,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 for (int i = 4; i < res.length; i++) {
                     res[i] = temp[i-4];
                 }
+                res[res.length-1] = 0;
                 return res;
 
         }
