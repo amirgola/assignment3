@@ -21,7 +21,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     ArrayList<DATApacket> temp;
     private boolean recievingData;
     private String tempFileName;
-    private String workingDirectory = System.getProperty("user.dir")+File.separator+"Files";
+    final private String workingDirectory = "C:\\Users\\Medhopz\\Desktop\\Study\\SPL\\assignment3\\assignment3\\assignment3\\Files";
     private ConcurrentHashMap<Integer, byte[]> orgenizeData;
     private ConcurrentLinkedDeque<String> namesOfFiles;
     private int sendFileNamePackets;
@@ -53,9 +53,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
         files = folder.listFiles();
 
-//        for (File t: files) {
-//            namesOfFiles.add(t.getName());
-//        }
+        for (File t: files) {
+            namesOfFiles.add(t.getName());
+        }
     }
 
     @Override
@@ -164,13 +164,8 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                // connections.disconnect(this.connectionId);
                 break;
             case "DIRQ":
-                System.out.println("op code for dirq is " + ((DIRQpacket) message).getOpCode());
-
                 sendingFileNames = true;
                 fileNamePackets = sendFileNames();
-                for (DATApacket d:fileNamePackets) {
-                    System.out.println("packet size is " +d.getPacketSize());
-                }
                 tempBlkNum = 1;
                 if (fileNamePackets.size() > 0) {
                     connections.send(this.connectionId, fileNamePackets.remove(0)); // send first packet
@@ -192,27 +187,28 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             allStrings += "\0";
         }
         System.out.println("all strings "+allStrings);
+        byte[] tep = allStrings.getBytes();
         byte[] buf = new byte[512];
         ArrayList<DATApacket> res = new ArrayList<>();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
         short blkNumber = 1;
-        try {
-            InputStream in = new ByteArrayInputStream(allStrings.getBytes());
-            System.out.println("1");
-            while(in.read(buf) != -1) {
-                System.out.println("2");
-                out.write(buf);
-                byte[] data = out.toByteArray();
-                res.add(new DATApacket((short)data.length, blkNumber , data));
-                blkNumber++;
-                out.reset();
-                System.out.println("3");
-                //do we need to reset the buf array as well?
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        int counter = 0;
+        for (byte b: tep) {
+             buf[counter] = b;
+             counter++;
+                if(counter == 511) {
+                    res.add(new DATApacket((short) 512, blkNumber, buf));
+                    blkNumber++;
+                    counter = 0;
+                    buf = new byte[512];
+                }
         }
-        System.out.println("4");
+            if(counter != 0) {
+            byte[] smallByte = new byte [counter];
+            System.arraycopy(buf, 0, smallByte, 0, counter);
+                res.add(new DATApacket((short) counter, blkNumber, buf));
+                blkNumber++;
+            }
+
         return res;
     }
 
