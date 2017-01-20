@@ -1,6 +1,7 @@
 package bgu.spl171.net.api.bidi;
 
 import bgu.spl171.net.api.Packet.*;
+import java.util.Arrays;
 import bgu.spl171.net.srv.NonBlockingConnectionHandler;
 import bgu.spl171.net.srv.bidi.ConnectionHandler;
 
@@ -21,7 +22,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     ArrayList<DATApacket> temp;
     private boolean recievingData;
     private String tempFileName;
-    final private String workingDirectory = "C:\\Users\\Medhopz\\Desktop\\Study\\SPL\\assignment3\\assignment3\\assignment3\\Files";
+    final private String workingDirectory = System.getProperty("user.dir")+File.separator+"Files";//"C:\\Users\\Medhopz\\Desktop\\Study\\SPL\\assignment3\\assignment3\\assignment3\\Files";
     private ConcurrentHashMap<Integer, byte[]> orgenizeData;
     private ConcurrentLinkedDeque<String> namesOfFiles;
     private int sendFileNamePackets;
@@ -80,7 +81,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     deleteFromFolder(((DELRQpacket) message).getFileName());
                     connections.send(this.connectionId, new ACKpacket((short) 0));
                     namesOfFiles.remove(((DELRQpacket) message).getFileName());
-                    this.connections.broadcast(new BCASTpacket((byte) 0, "BCAST del " + ((DELRQpacket) message).getFileName()));
+                    this.connections.broadcast(new BCASTpacket((byte) 0, ((DELRQpacket) message).getFileName()));
                 } else {
                     connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
                 }
@@ -124,6 +125,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                 break;
             case "DATA":
                 if (recievingData) {
+                    if(orgenizeData == null){
+                        orgenizeData = new ConcurrentHashMap<>();
+                    }
+
                     orgenizeData.put((int) ((DATApacket) message).getBlockNumber(), ((DATApacket) message).getData());
                     connections.send(this.connectionId, new ACKpacket((short) ((DATApacket) message).getBlockNumber()));
                     if (((DATApacket) message).getData().length < 512) {//check if we have enough packets
@@ -144,9 +149,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                             }
                             out.close();
                             namesOfFiles.add(tempFileName);
-                            tempFileName = "";
+                            this.connections.broadcast(new BCASTpacket((byte)1, tempFileName));
 
-                            this.connections.broadcast(new BCASTpacket((byte) 1, "BCAST add " + tempFileName));
+                            tempFileName = "";
                             lastBlk = 0;
                             orgenizeData = null;
                         } catch (IOException e) {
@@ -215,21 +220,32 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
     private ArrayList<DATApacket> fileToDataPacket(String fileName) {
         File fileToSend = new File(workingDirectory + File.separator + fileName);
-        byte[] buf = new byte[512];
         ArrayList<DATApacket> res = new ArrayList<>();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        short blkNumber = 1;
+
         try {
-            FileInputStream in = new FileInputStream(fileToSend);
-            while(in.read(buf) != -1) {
-                out.write(buf);
-                byte[] data = out.toByteArray();
-                res.add(new DATApacket((short)data.length, blkNumber , data));
+            FileInputStream stream = new FileInputStream(fileToSend);
+            byte[] buf = new byte[512];
+            short currPacketSize = (short)stream.read(buf);
+            short blkNumber = 1;
+
+            while(currPacketSize == 512){
+                res.add(new DATApacket(currPacketSize, blkNumber , buf));
                 blkNumber++;
-                out.reset();
-                //do we need to reset the buf array as well?
+                buf = new byte[512];
+                currPacketSize = (short)stream.read(buf);
             }
-        } catch (IOException e) {
+
+            // if we finish to read the file using exactly 512 byte, then send other one
+            if(currPacketSize == -1){
+                res.add(new DATApacket((short)0, blkNumber, new byte[0]));
+            } else {
+                buf = Arrays.copyOf(buf, currPacketSize);
+                res.add(new DATApacket(currPacketSize, blkNumber , buf));
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e){
             e.printStackTrace();
         }
 

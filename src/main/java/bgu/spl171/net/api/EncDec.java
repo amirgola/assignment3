@@ -27,7 +27,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
     private short pckSize=0; // not sure where to init!
     private short blkNum=0;
     private byte[] dataArr = new byte[0];
-    private int dataIndex = 0;
+    private short dataIndex = 0;
 
     @Override
     //maybe need to switch to byte buffer instead of array
@@ -57,8 +57,10 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         buffer.put(nextByte);
                     } else {
                         try {
-                            //maybe need to rewind here!
-                            str = new String(buffer.array(), "UTF-8");
+                            buffer.flip();
+                            byte[] objectBytes = new byte[buffer.limit()];
+                            buffer.get(objectBytes,0, buffer.limit());
+                            str = new String(objectBytes, "UTF-8");
                             resetBuffer();
                             return new LOGRQpacket(str);
                         } catch (UnsupportedEncodingException e) {
@@ -75,7 +77,10 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         buffer.put(nextByte);
                     } else {
                         try {
-                            str = new String(buffer.array(), "UTF-8");
+                            buffer.flip();
+                            byte[] objectBytes = new byte[buffer.limit()];
+                            buffer.get(objectBytes,0, buffer.limit());
+                            str = new String(objectBytes, "UTF-8");
                             resetBuffer();
                             return new DELRQpacket(str);
                         } catch (UnsupportedEncodingException e) {
@@ -92,7 +97,10 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         buffer.put(nextByte);
                     } else {
                         try {
-                            str = new String(buffer.array(), "UTF-8");
+                            buffer.flip();
+                            byte[] objectBytes = new byte[buffer.limit()];
+                            buffer.get(objectBytes,0, buffer.limit());
+                            str = new String(objectBytes, "UTF-8");
                             resetBuffer();
                             return new RRQpacket(str);
                         } catch (UnsupportedEncodingException e) {
@@ -110,7 +118,10 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         buffer.put(nextByte);
                     } else {
                         try {
-                            str = new String(buffer.array(), "UTF-8");
+                            buffer.flip();
+                            byte[] objectBytes = new byte[buffer.limit()];
+                            buffer.get(objectBytes,0, buffer.limit());
+                            str = new String(objectBytes, "UTF-8");
                             resetBuffer();
                             return new WRQpacket(str);
                         } catch (UnsupportedEncodingException e) {
@@ -118,11 +129,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                         }
                     }
                     break;
-
-
-
                 case "DATA":
-
                     if(firstTime) {
                         buffer = ByteBuffer.allocate(4);
                         firstTime = false;
@@ -140,9 +147,13 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                             blkNum = buffer.getShort();
                         }
                     } else {
+                        if(dataArr.length == dataIndex){
+                            dataIndex = dataIndex;
+                        }
                         dataArr[dataIndex++] = nextByte;
                         if (dataIndex == pckSize) {
                             resetBuffer();
+                            dataIndex = 0;
                             return new DATApacket(pckSize, blkNum, dataArr);
                         }
                     }
@@ -205,9 +216,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
         msgType = message.getMsgType();
 
         switch (msgType) {
-
             case "ACK":
-
                 res = new byte[4];
                 blkNumArray = shortToBytes( ((ACKpacket)message).getBlockNumber());
                 opCodeArray = shortToBytes(message.getOpCode());
@@ -215,10 +224,7 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 res[1] = opCodeArray[1];
                 res[2] = blkNumArray[0];
                 res[3] = blkNumArray[1];
-
                 return res;
-
-
             case "BCAST":
                 res = new byte[((BCASTpacket)message).getFilname().length()+4];
                 opCodeArray = shortToBytes(message.getOpCode());
@@ -227,8 +233,8 @@ public class EncDec implements MessageEncoderDecoder<Packets> {
                 res[2] = ((BCASTpacket)message).getDelAdd();
                 temp = new byte[((BCASTpacket)message).getFilname().length()];
                 temp = ((BCASTpacket)message).getFilname().getBytes();
-                for (int i = 3; i < res.length; i++) {
-                    res[i] = temp[i-3];
+                for (int i = 0; i < temp.length; i++) {
+                    res[i+3] = temp[i];
                 }
                 res[res.length-1] = 0;
                 return res;
