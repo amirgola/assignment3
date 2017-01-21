@@ -86,8 +86,12 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             case "RRQ":
                 if (findFile(((RRQpacket) message).getFileName())) {
                     temp = fileToDataPacket(((RRQpacket) message).getFileName());
-                    connections.send(this.connectionId, temp.remove(0)); // send first packet
-                    packetsLeft = temp.size();
+                    if(temp.size() > 0) {
+                        connections.send(this.connectionId, temp.remove(0)); // send first packet
+                        packetsLeft = temp.size();
+                    } else {
+                        connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
+                    }
                 } else {
                     connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
                 }
@@ -105,8 +109,8 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
             case "ACK":
                 if (packetsLeft > 0 && ((ACKpacket) message).getBlockNumber() == temp.get(0).getBlockNumber() - 1) {
-                    connections.send(this.connectionId, temp.remove(0));
                     packetsLeft = packetsLeft - 1;
+                    connections.send(this.connectionId, temp.remove(0));
                 }
                 if (sendingFileNames) {
                     if (fileNamePackets.size() > 0 && ((ACKpacket) message).getBlockNumber() == tempBlkNum) {
@@ -126,7 +130,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     }
 
                     orgenizeData.put((int) ((DATApacket) message).getBlockNumber(), ((DATApacket) message).getData());
-                    connections.send(this.connectionId, new ACKpacket((short) ((DATApacket) message).getBlockNumber()));
+                    connections.send(this.connectionId, new ACKpacket(((DATApacket) message).getBlockNumber()));
                     if (((DATApacket) message).getData().length < 512) {//check if we have enough packets
                         lastBlk = ((DATApacket) message).getBlockNumber();
                     }
