@@ -98,11 +98,15 @@ public class Reactor<T> implements Server<T> {
     private void handleAccept(ServerSocketChannel serverChan, Selector selector) throws IOException {
         SocketChannel clientChan = serverChan.accept();
         clientChan.configureBlocking(false);
+        BidiMessagingProtocol<T> protocol = protocolFactory.get();
         final NonBlockingConnectionHandler handler = new NonBlockingConnectionHandler(
                 readerFactory.get(),
                 protocolFactory.get(),
                 clientChan,
                 this);
+
+        int conId = connections.addNewUser(handler);
+        protocol.start(conId, connections);
 
         clientChan.register(selector, SelectionKey.OP_READ, handler);
     }
