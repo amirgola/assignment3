@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
 
     private int connectionId;
-    private Connections connections;
+    private static Connections connections;
     private ConcurrentHashMap<Integer,String> userNameMap;
     private int packetsLeft;
     ArrayList<DATApacket> temp;
@@ -47,9 +47,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
         namesOfFiles = new ConcurrentLinkedDeque<>();
         File folder = new File(workingDirectory);
 
-        for (File t : folder.listFiles()) {
-            namesOfFiles.add(t.getName());
-        }
+//        for (File t : folder.listFiles()) {
+//            namesOfFiles.add(t.getName());
+//        }
     }
 
     @Override
