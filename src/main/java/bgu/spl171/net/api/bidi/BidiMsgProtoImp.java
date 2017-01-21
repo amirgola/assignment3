@@ -25,36 +25,29 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     final private String workingDirectory = System.getProperty("user.dir")+File.separator+"Files";//"C:\\Users\\Medhopz\\Desktop\\Study\\SPL\\assignment3\\assignment3\\assignment3\\Files";
     private ConcurrentHashMap<Integer, byte[]> orgenizeData;
     private ConcurrentLinkedDeque<String> namesOfFiles;
-    private int sendFileNamePackets;
     private ArrayList<DATApacket> fileNamePackets;
     private boolean sendingFileNames;
     private short tempBlkNum;
     private short lastBlk;
     private boolean shouldTerminate;
     private boolean loggedIn;
-    private  File folder;
-    private  File[] files;
-
 
 
     public void start(int connectionId, Connections connections) {
-            this.connectionId = connectionId;
-            this.connections = connections;
-            this.userNameMap = new ConcurrentHashMap<>();
-            this.packetsLeft = 0;
-            this.sendFileNamePackets = 0;
-            this.fileNamePackets = new ArrayList<>();
-            recievingData = false;
-            sendingFileNames = false;
-            this.shouldTerminate = false;
-            this.lastBlk = 0;
-            this.loggedIn = false;
-            namesOfFiles = new ConcurrentLinkedDeque<>();
-            folder = new File(workingDirectory);
+        this.connectionId = connectionId;
+        this.connections = connections;
+        this.userNameMap = new ConcurrentHashMap<>();
+        this.packetsLeft = 0;
+        this.fileNamePackets = new ArrayList<>();
+        recievingData = false;
+        sendingFileNames = false;
+        this.shouldTerminate = false;
+        this.lastBlk = 0;
+        this.loggedIn = false;
+        namesOfFiles = new ConcurrentLinkedDeque<>();
+        File folder = new File(workingDirectory);
 
-        files = folder.listFiles();
-
-        for (File t: files) {
+        for (File t : folder.listFiles()) {
             namesOfFiles.add(t.getName());
         }
     }
@@ -259,12 +252,12 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     }
 
     private boolean findFile(String fileName) {
-
+        File folder = new File(workingDirectory);
         if(!folder.canRead()) {
             System.out.println("Cannot read");
         }
 
-        files = folder.listFiles();
+        File[] files = folder.listFiles();
         if (files != null)
             for (File fil : files) {
                 if (fileName.equalsIgnoreCase(fil.getName())) {
