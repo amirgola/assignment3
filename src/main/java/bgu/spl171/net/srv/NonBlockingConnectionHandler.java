@@ -52,7 +52,6 @@ public class NonBlockingConnectionHandler<T> implements java.io.Closeable, Conne
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
-                            System.out.println("hello");
 
                             protocol.process(nextMessage);
                         }

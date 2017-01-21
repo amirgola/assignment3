@@ -37,7 +37,6 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
-                    System.out.println("after decode "+ nextMessage.getClass());
                     protocol.process(nextMessage);
                 }
             }
@@ -58,8 +57,6 @@ public class BlockingConnectionHandler<T> implements Runnable, java.io.Closeable
     public void send(T msg) {
         try {
             //out = new BufferedOutputStream(this.sock.getOutputStream());
-            System.out.println(" going out "+msg);
-            System.out.println(" going out op code"+((Packets)msg).getOpCode());
             out.write(encdec.encode(msg));
             out.flush();
 

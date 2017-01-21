@@ -22,7 +22,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     ArrayList<DATApacket> temp;
     private boolean recievingData;
     private String tempFileName;
-    final private String workingDirectory = System.getProperty("user.dir")+File.separator+"Files";//"C:\\Users\\Medhopz\\Desktop\\Study\\SPL\\assignment3\\assignment3\\assignment3\\Files";
+    final private String workingDirectory = System.getProperty("user.dir")+File.separator+"Files";
     private ConcurrentHashMap<Integer, byte[]> orgenizeData;
     private ConcurrentLinkedDeque<String> namesOfFiles;
     private ArrayList<DATApacket> fileNamePackets;
@@ -55,7 +55,6 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     @Override
     public void process(Packets message) {
         String msgType = message.getMsgType();
-        System.out.println(msgType);
 
         if(msgType.equalsIgnoreCase("LOGRQ")) {
             if ( !loggedIn(((LOGRQpacket) message).getUserName()) ) {
@@ -163,7 +162,6 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                 }
                 break;
             case "DISC":
-                System.out.println("op code for disc is " + ((DISCpacket) message).getOpCode());
 
                 connections.send(this.connectionId, new ACKpacket((short) 0));
                 userNameMap.remove(this.connectionId);
@@ -191,7 +189,6 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             allStrings += s;
             allStrings += "\0";
         }
-        System.out.println("all strings "+allStrings);
         byte[] tep = allStrings.getBytes();
         byte[] buf = new byte[512];
         ArrayList<DATApacket> res = new ArrayList<>();
