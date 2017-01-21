@@ -74,7 +74,10 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                     deleteFromFolder(((DELRQpacket) message).getFileName());
                     connections.send(this.connectionId, new ACKpacket((short) 0));
                     namesOfFiles.remove(((DELRQpacket) message).getFileName());
-                    this.connections.broadcast(new BCASTpacket((byte) 0, ((DELRQpacket) message).getFileName()));
+                    for(ConcurrentHashMap.Entry<Integer, String> user : userNameMap.entrySet()) {
+                        this.connections.send(user.getKey(),
+                                new BCASTpacket((byte) 0, ((DELRQpacket) message).getFileName()));
+                    }
                 } else {
                     connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
                 }
@@ -142,7 +145,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                             }
                             out.close();
                             namesOfFiles.add(tempFileName);
-                            this.connections.broadcast(new BCASTpacket((byte)1, tempFileName));
+                            for(ConcurrentHashMap.Entry<Integer, String> user : userNameMap.entrySet()) {
+                                this.connections.send(user.getKey(), new BCASTpacket((byte)1, tempFileName));
+                            }
 
                             tempFileName = "";
                             lastBlk = 0;
@@ -157,9 +162,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
                 System.out.println("op code for disc is " + ((DISCpacket) message).getOpCode());
 
                 connections.send(this.connectionId, new ACKpacket((short) 0));
-               // userNameMap.remove(this.connectionId);
-                //this.shouldTerminate = true;
-               // connections.disconnect(this.connectionId);
+                userNameMap.remove(this.connectionId);
                 break;
             case "DIRQ":
                 sendingFileNames = true;
@@ -237,9 +240,9 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            connections.send(this.connectionId, new ERRORpacket((short) 1, "File not found"));
         } catch (IOException e){
-            e.printStackTrace();
+            connections.send(this.connectionId, new ERRORpacket((short) 2, "Cannot read file"));
         }
 
         return res;
@@ -254,7 +257,7 @@ public class BidiMsgProtoImp implements BidiMessagingProtocol<Packets> {
     private boolean findFile(String fileName) {
         File folder = new File(workingDirectory);
         if(!folder.canRead()) {
-            System.out.println("Cannot read");
+            connections.send(this.connectionId, new ERRORpacket((short) 2, "Cannot read file"));
         }
 
         File[] files = folder.listFiles();
